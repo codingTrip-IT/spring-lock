@@ -15,13 +15,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @ActiveProfiles("redis")
-public class DistributedCounterServiceTest {
+public class DistributedCounterProviderTest {
+
+    @Autowired
+    private DistributedCounterProvider distributedCounterProvider;
 
     @Autowired
     private DistributedCounterService distributedCounterService;
-
-    @Autowired
-    private DistributedCounterFacade distributedCounterFacade;
 
     private Long counterId;
 
@@ -29,7 +29,7 @@ public class DistributedCounterServiceTest {
     public void setup() {
         DistributedCounter counter = new DistributedCounter();
         counter.setCount(0);
-        distributedCounterService.save(counter);
+        distributedCounterProvider.save(counter);
         counterId = counter.getId();
     }
 
@@ -43,7 +43,7 @@ public class DistributedCounterServiceTest {
         for (int i = 0; i < testCount; i++) {
             executorService.submit(() -> {
                 try {
-                    distributedCounterFacade.incrementCounterWithDistributedLock(counterId);
+                    distributedCounterService.incrementCounterWithDistributedLock(counterId);
                     successfulUpdates.incrementAndGet();
                 } catch (Exception e) {
                     System.out.println("락 충돌: " + e.getMessage());
@@ -56,7 +56,7 @@ public class DistributedCounterServiceTest {
         latch.await(); // 모든 스레드가 작업을 완료할 때까지 대기
         executorService.shutdown();
 
-        DistributedCounter finalCounter = distributedCounterService.getCounter(counterId);
+        DistributedCounter finalCounter = distributedCounterProvider.getCounter(counterId);
         System.out.println("성공한 업데이트 수: " + successfulUpdates.get());
         System.out.println("최종 count: " + finalCounter.getCount());
 

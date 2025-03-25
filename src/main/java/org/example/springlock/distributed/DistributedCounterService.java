@@ -2,30 +2,21 @@ package org.example.springlock.distributed;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class DistributedCounterService {
 
-    private final DistributedCounterRepository distributedCounterRepository;
+    private final DistributedCounterProvider distributedCounterProvider;
+    private final DistributedLockManager distributedLockManager;
 
-    @Transactional
-    public void save(DistributedCounter counter) {
-        distributedCounterRepository.save(counter);
-    }
-
-    @Transactional
-    public void incrementCounter(Long counterId) {
-        DistributedCounter counter = distributedCounterRepository.findById(counterId)
-                .orElseThrow(() -> new IllegalArgumentException("Counter not found"));
-
-        counter.setCount(counter.getCount() + 1);
-        distributedCounterRepository.save(counter);
-    }
-
-    public DistributedCounter getCounter(Long counterId) {
-        return distributedCounterRepository.findById(counterId)
-                .orElseThrow(() -> new IllegalArgumentException("Counter not found"));
+    public void incrementCounterWithDistributedLock(Long counterId) {
+        try {
+            distributedLockManager.executeWithLock(counterId, () ->
+                distributedCounterProvider.incrementCounter(counterId));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("락 획득 중 인터럽트 발생: " + counterId, e);
+        }
     }
 }
