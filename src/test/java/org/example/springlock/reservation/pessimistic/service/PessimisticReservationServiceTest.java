@@ -60,8 +60,8 @@ class PessimisticReservationServiceTest {
         double durationInSeconds = durationInMillis / 1000.0;
 
         int finalCount = pessimisticReservationService.getReservationById(pessimisticReservationId).getAvailableSpots();
-        System.out.println("최종 count: " + finalCount);
-        System.out.println("성공한 업데이트 수: " + successfulUpdates.get());
+        System.out.println("남은 예약 가능인원: " + finalCount);
+        System.out.println("성공한 예약 수: " + successfulUpdates.get());
         System.out.println("테스트 실행 시간: " + durationInSeconds + "초");
 
         // 예약 가능한 인원은 정확히 0이어야 함
