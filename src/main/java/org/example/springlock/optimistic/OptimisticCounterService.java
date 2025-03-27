@@ -19,7 +19,7 @@ public class OptimisticCounterService {
     public void incrementCount(Long counterId) {
         OptimisticCounter optimisticCounter = optimisticCounterRepository.findById(counterId)
                 .orElseThrow(() -> new IllegalArgumentException("Counter not found"));
-        optimisticCounter.setCount(optimisticCounter.getCount() + 1);
+        optimisticCounter.addCount(optimisticCounter.getCount() + 1);
         optimisticCounterRepository.save(optimisticCounter);
     }
 

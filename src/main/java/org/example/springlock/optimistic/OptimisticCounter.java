@@ -1,10 +1,14 @@
 package org.example.springlock.optimistic;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Data
 @Entity
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class OptimisticCounter {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,4 +16,8 @@ public class OptimisticCounter {
     private int count;
     @Version
     private int version;
+
+    public void addCount(int count) {
+        this.count = count;
+    }
 }

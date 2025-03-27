@@ -23,7 +23,7 @@ class CounterServiceTest {
     @BeforeEach
     public void setup() {
         Counter counter = new Counter();
-        counter.setCount(0);
+        counter.addCount(0);
         Counter savedCounter = counterService.saveCounter(counter);
         counterId = savedCounter.getId();
         System.out.println("counterId: " + counterId);

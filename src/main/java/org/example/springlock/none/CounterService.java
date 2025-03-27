@@ -19,7 +19,7 @@ public class CounterService {
     public void incrementCount(Long counterId) {
         Counter counter = counterRepository.findById(counterId)
                 .orElseThrow(() -> new IllegalArgumentException("Counter not found"));
-        counter.setCount(counter.getCount() + 1);
+        counter.addCount(counter.getCount() + 1);
         counterRepository.save(counter);
     }
 

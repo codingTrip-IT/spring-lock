@@ -1,5 +1,6 @@
-package org.example.springlock.optimistic;
+package org.example.springlock.reservation.optimistic.service;
 
+import org.example.springlock.reservation.optimistic.entity.OptimisticReservation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,19 +16,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
-class OptimisticCounterServiceTest {
+class OptimisticReservationServiceTest {
 
     @Autowired
-    private OptimisticCounterService optimisticCounterService;
+    private OptimisticReservationService optimisticReservationService;
 
-    private Long optimisticCounterId;
+    private Long optimisticReservationId;
 
     @BeforeEach
     public void setup() {
-        OptimisticCounter optimisticCounter = new OptimisticCounter();
-        optimisticCounter.addCount(0);
-        OptimisticCounter savedOptimisticCounter = optimisticCounterService.saveCounter(optimisticCounter);
-        optimisticCounterId = savedOptimisticCounter.getId();
+        OptimisticReservation optimisticReservation = new OptimisticReservation(100);
+        OptimisticReservation saveOptimisticReservation = optimisticReservationService.saveReservation(optimisticReservation);
+        optimisticReservationId = saveOptimisticReservation.getId();
     }
 
     @Test
@@ -38,13 +38,15 @@ class OptimisticCounterServiceTest {
 
         // 예외 발생 횟수를 추적하기 위한 변수
         AtomicInteger optimisticLockExceptionCount = new AtomicInteger(0);
+        AtomicInteger successfulReservations = new AtomicInteger(0);
 
         long startTime = System.currentTimeMillis();
 
         for (int i = 0; i < testCount; i++) {
             executorService.submit(() -> {
                 try {
-                    optimisticCounterService.incrementCount(optimisticCounterId);
+                    optimisticReservationService.decrementAvailableSpots(optimisticReservationId);
+                    successfulReservations.incrementAndGet(); //예약 성공 횟수 증가
                 } catch (OptimisticLockingFailureException e) {
                     // 낙관적 락 충돌 발생 시 처리 및 예외 카운트 증가
                     optimisticLockExceptionCount.incrementAndGet();
@@ -61,16 +63,16 @@ class OptimisticCounterServiceTest {
         long durationInMillis = endTime - startTime;
         double durationInSeconds = durationInMillis / 1000.0;
 
-        // 하나 이상의 OptimisticLockingFailureException 발생해야 함
         assertTrue(optimisticLockExceptionCount.get() > 0);
 
-        int finalCount = optimisticCounterService.getCounterById(optimisticCounterId).getCount();
-        int testedTotalCount = optimisticLockExceptionCount.get() + finalCount;
-        assertEquals(testedTotalCount, testCount);
+        // 예약 가능한 인원은 정확히 0이어야 함
+        int finalCount = optimisticReservationService.getReservationById(optimisticReservationId).getAvailableSpots();
+        assertEquals(0, finalCount);
 
         System.out.println("발생한 예외 수: " + optimisticLockExceptionCount.get());
-        System.out.println("최종 count: " + finalCount);
+        System.out.println("성공한 예약 수: " + successfulReservations.get());
+        System.out.println("남은 예약 가능인원: " + finalCount);
         System.out.println("테스트 실행 시간: " + durationInSeconds + "초");
-        System.out.println("testCount: " + testCount + ", testedTotalCount: " + testedTotalCount);
     }
+
 }

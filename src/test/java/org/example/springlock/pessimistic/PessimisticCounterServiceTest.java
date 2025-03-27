@@ -23,7 +23,7 @@ class PessimisticCounterServiceTest {
     @BeforeEach
     public void setup() {
         PessimisticCounter counter = new PessimisticCounter();
-        counter.setCount(0);
+        counter.addCount(0);
         PessimisticCounter savedCounter = pessimisticCounterService.saveCounter(counter);
         pessimisticCounterId = savedCounter.getId();
         System.out.println("counterId: " + pessimisticCounterId);
